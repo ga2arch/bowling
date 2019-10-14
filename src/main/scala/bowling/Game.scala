@@ -18,12 +18,12 @@ sealed trait GameError
 case class StandardGame(frames: List[Frame], score: Int) extends Game {
   override def addRoll(roll: Roll): Either[GameError, Game] = {
     validate(roll) match {
-      case None => Right(addRollToGame(roll))
+      case None => Right(processRoll(roll))
       case Some(error) => Left(error)
     }
   }
 
-  private def addRollToGame(roll: Roll): Game =
+  private def processRoll(roll: Roll): Game =
     frames match {
       case Nil =>
         val frame = newFrame(roll)
@@ -32,7 +32,7 @@ case class StandardGame(frames: List[Frame], score: Int) extends Game {
       case initFrames :+ previousFrame =>
         val (updatedFrames, newScore1) = initFrames.lastOption match {
           case Some(frame@StrikeFrame(_, _)) if !isFrameComplete(frame) =>
-            val updatedFrame = addRollToFrame(frame, roll)
+            val updatedFrame = addRoll(frame, roll)
             (initFrames.init :+ updatedFrame, roll.score)
 
           case _ =>
@@ -40,7 +40,7 @@ case class StandardGame(frames: List[Frame], score: Int) extends Game {
         }
         val (newFrames, newScore2) = previousFrame match {
           case StrikeFrame(_, _) | SpareFrame(_, _) =>
-            val updatedFrame = addRollToFrame(previousFrame, roll)
+            val updatedFrame = addRoll(previousFrame, roll)
             if (!this.isLastFrame) {
               (List(updatedFrame, newFrame(roll)), roll.score * 2)
             } else {
@@ -51,18 +51,23 @@ case class StandardGame(frames: List[Frame], score: Int) extends Game {
             (List(previousFrame, newFrame(roll)), roll.score)
 
           case frame@OpenFrame(_, _) if !isFrameComplete(frame) =>
-            (List(addRollToFrame(previousFrame, roll)), roll.score)
+            (List(addRoll(previousFrame, roll)), roll.score)
         }
 
         this.copy(frames = updatedFrames ++ newFrames, score = this.score + newScore1 + newScore2)
     }
 
 
-  private def addRollToFrame(frame: Frame, roll: Roll) = frame match {
-    case OpenFrame(_, _) if isSpareRoll(roll) => SpareFrame(frame.rolls :+ roll, score = frame.score + roll.score)
-    case OpenFrame(_, _) => OpenFrame(frame.rolls :+ roll, score = frame.score + roll.score)
-    case StrikeFrame(_, _) => StrikeFrame(frame.rolls :+ roll, score = frame.score + roll.score)
-    case SpareFrame(_, _) => SpareFrame(frame.rolls :+ roll, score = frame.score + roll.score)
+  private def addRoll(frame: Frame, roll: Roll) = {
+    val newRolls = frame.rolls :+ roll
+    val newScore = frame.score + roll.score
+
+    frame match {
+      case OpenFrame(_, _) if isSpareRoll(roll) => SpareFrame(newRolls, newScore)
+      case OpenFrame(_, _) => OpenFrame(newRolls, newScore)
+      case StrikeFrame(_, _) => StrikeFrame(newRolls, newScore)
+      case SpareFrame(_, _) => SpareFrame(newRolls, newScore)
+    }
   }
 
   private def isFrameComplete(frame: Frame) = frame match {
@@ -72,11 +77,18 @@ case class StandardGame(frames: List[Frame], score: Int) extends Game {
   }
 
   private def validate(roll: Roll): Option[GameError] = {
-    if (this.isComplete) return Some(GameIsComplete(this, roll))
-    if (this.frames.isEmpty && isSpareRoll(roll)) return Some(InvalidRoll(this, roll))
-    if (isSpareRoll(roll) && !isOpenRoll(this.frames.last.rolls.last)) return Some(InvalidRoll(this, roll))
+    if (this.isComplete) {
+      Some(GameIsComplete(this, roll))
 
-    None
+    } else if (this.frames.isEmpty && isSpareRoll(roll)) {
+      Some(InvalidRoll(this, roll))
+
+    } else if (isSpareRoll(roll) && !isOpenRoll(this.frames.last.rolls.last)) {
+      Some(InvalidRoll(this, roll))
+
+    } else {
+      None
+    }
   }
 
   def isComplete: Boolean = isLastFrame && isFrameComplete(frames.last)
