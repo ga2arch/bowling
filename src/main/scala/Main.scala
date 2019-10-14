@@ -1,4 +1,4 @@
-import bowling.{BowlingGame, LineParser}
+import bowling.{Game, LineParser}
 
 object Main {
 
@@ -19,5 +19,5 @@ object Main {
     io.StdIn.readLine()
   }
 
-  private def runStandardGame(line: String) = BowlingGame.run(BowlingGame.standard, LineParser.string)(line)
+  private def runStandardGame(line: String) = Game.run(Game.standard, LineParser.string)(line)
 }

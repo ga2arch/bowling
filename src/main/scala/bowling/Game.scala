@@ -2,28 +2,28 @@ package bowling
 
 import scala.annotation.tailrec
 
-sealed trait BowlingGame {
+sealed trait Game {
   def score: Int
 
   def frames: List[Frame]
 
   def isComplete: Boolean
 
-  def addRoll(roll: Roll): Either[GameError, BowlingGame]
+  def addRoll(roll: Roll): Either[GameError, Game]
 
 }
 
 sealed trait GameError
 
-case class StandardBowlingGame(frames: List[Frame], score: Int) extends BowlingGame {
-  override def addRoll(roll: Roll): Either[GameError, BowlingGame] = {
+case class StandardGame(frames: List[Frame], score: Int) extends Game {
+  override def addRoll(roll: Roll): Either[GameError, Game] = {
     validate(roll) match {
       case None => Right(addRollToGame(roll))
       case Some(error) => Left(error)
     }
   }
 
-  private def addRollToGame(roll: Roll): BowlingGame =
+  private def addRollToGame(roll: Roll): Game =
     frames match {
       case Nil =>
         val frame = newFrame(roll)
@@ -100,16 +100,16 @@ case class StandardBowlingGame(frames: List[Frame], score: Int) extends BowlingG
   }
 }
 
-case class GameIsComplete(game: BowlingGame, roll: Roll) extends GameError
+case class GameIsComplete(game: Game, roll: Roll) extends GameError
 
-case class InvalidRoll(game: BowlingGame, roll: Roll) extends GameError
+case class InvalidRoll(game: Game, roll: Roll) extends GameError
 
-object BowlingGame {
-  def standard: BowlingGame = StandardBowlingGame(Nil, 0)
+object Game {
+  def standard: Game = StandardGame(Nil, 0)
 
-  def run[T](game: BowlingGame, lineParser: LineParser[T])(input: T): Either[GameError, BowlingGame] = {
+  def run[T](game: Game, lineParser: LineParser[T])(input: T): Either[GameError, Game] = {
     @tailrec
-    def reduce(game: BowlingGame, rolls: Iterator[Roll]): Either[GameError, BowlingGame] = {
+    def reduce(game: Game, rolls: Iterator[Roll]): Either[GameError, Game] = {
       rolls.nextOption() match {
         case Some(roll) => game.addRoll(roll) match {
           case Left(error) => Left(error)

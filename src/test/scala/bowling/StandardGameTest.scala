@@ -2,7 +2,7 @@ package bowling
 
 import org.scalatest._
 
-class StandardBowlingGameTest extends FlatSpec with Matchers {
+class StandardGameTest extends FlatSpec with Matchers {
   private val lineToScore = List(
     "X X X X X X X X X XXX" -> 300,
     "X -/ X 5- 8/ 9- X 81 1- 4/X" -> 137,
@@ -55,7 +55,7 @@ class StandardBowlingGameTest extends FlatSpec with Matchers {
     "X X X X X X X X X X51" -> 281
   )
 
-  "A BowlingGame" should "calculate score for lines" in {
+  "A StandardGame" should "calculate score for lines" in {
       lineToScore.foreach(lineScore => {
         //when
         val game = runGame(lineScore._1)
@@ -82,7 +82,7 @@ class StandardBowlingGameTest extends FlatSpec with Matchers {
 
   it should "return InvalidRoll when the addition of a roll is invalid related to the game state" in {
     //given
-    val game = BowlingGame.standard
+    val game = Game.standard
     val roll = SpareRoll(10)
 
     //when
@@ -104,6 +104,6 @@ class StandardBowlingGameTest extends FlatSpec with Matchers {
     })
   }
 
-  private def runGame(line: String) = BowlingGame.run(BowlingGame.standard, LineParser.string)(line).right.get
+  private def runGame(line: String) = Game.run(Game.standard, LineParser.string)(line).right.get
 
 }
