@@ -9,4 +9,4 @@ case class StrikeRoll(score: Int) extends Roll
 
 case class SpareRoll(score: Int) extends Roll
 
-case class NormalRoll(score: Int) extends Roll
+case class OpenRoll(score: Int) extends Roll

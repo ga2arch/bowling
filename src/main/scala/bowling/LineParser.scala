@@ -29,10 +29,10 @@ class StringLineParser extends LineParser[String] {
       SpareRoll(10 - (previous - '0'))
 
     case (_, '-') =>
-      NormalRoll(0)
+      OpenRoll(0)
 
     case (_, c) =>
-      NormalRoll(c - '0')
+      OpenRoll(c - '0')
   }
 }
 

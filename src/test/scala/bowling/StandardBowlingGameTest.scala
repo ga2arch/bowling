@@ -2,8 +2,8 @@ package bowling
 
 import org.scalatest._
 
-class BowlingGameTest extends FlatSpec with Matchers {
-  val lineToScore = Map(
+class StandardBowlingGameTest extends FlatSpec with Matchers {
+  private val lineToScore = List(
     "X X X X X X X X X XXX" -> 300,
     "X -/ X 5- 8/ 9- X 81 1- 4/X" -> 137,
     "62 71 X 9- 8/ X X 35 72 5/8" -> 140,
@@ -57,9 +57,53 @@ class BowlingGameTest extends FlatSpec with Matchers {
 
   "A BowlingGame" should "calculate score for lines" in {
       lineToScore.foreach(lineScore => {
-        val result = BowlingGame.run(BowlingGame.standard, LineParser.string)(lineScore._1)
-        result.isRight shouldBe true
-        result.right.get.score shouldBe lineScore._2
+        //when
+        val game = runGame(lineScore._1)
+
+        //then
+        game.isComplete shouldBe true
+        game.frames.size shouldBe 10
+        game.score shouldBe lineScore._2
       })
   }
+
+  it should "return GameIsComplete when adding a roll to a complete game" in {
+    //given
+    val game = runGame(lineToScore.head._1)
+    val roll = StrikeRoll(10)
+
+    //when
+    val result = game.addRoll(StrikeRoll(10))
+
+    //then
+    result.isLeft shouldBe true
+    result shouldBe Left(GameIsComplete(game, roll))
+  }
+
+  it should "return InvalidRoll when the addition of a roll is invalid related to the game state" in {
+    //given
+    val game = BowlingGame.standard
+    val roll = SpareRoll(10)
+
+    //when
+    val result = game.addRoll(roll)
+
+    //then
+    result.isLeft shouldBe true
+    result shouldBe Left(InvalidRoll(game, roll))
+  }
+
+  "The sum of the score of each frame of a BowlingGame" should "be the same score of the game" in {
+    lineToScore.map(_._1).foreach(line => {
+      //when
+      val game = runGame(line)
+
+      //then
+      game.isComplete shouldBe true
+      game.score shouldBe game.frames.map(_.score).sum
+    })
+  }
+
+  private def runGame(line: String) = BowlingGame.run(BowlingGame.standard, LineParser.string)(line).right.get
+
 }
