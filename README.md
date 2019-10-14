@@ -1,5 +1,15 @@
 # Bowling
-This description is based on that at Adventures in C#: The Bowling Game
+
+## Run
+```sbt run```
+```
+Bowling line score calculator
+> X 7/ 72 9/ X X X 23 6/ 7/3
+168
+> X -/ X X X X X X X XXX
+280
+```
+
 
 ## Problem Description
 Create a program, which, given a valid sequence of rolls for one line of American Ten-Pin Bowling, produces the total score for the game. Here are some things that the program will not do:
