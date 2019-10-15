@@ -1,6 +1,5 @@
 package bowling
 
-
 sealed trait Roll {
   def score: Int
 }
