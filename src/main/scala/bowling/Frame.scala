@@ -1,6 +1,5 @@
 package bowling
 
-
 sealed trait Frame {
   def rolls: List[Roll]
 
