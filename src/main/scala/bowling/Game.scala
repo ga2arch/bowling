@@ -10,7 +10,6 @@ sealed trait Game {
   def isComplete: Boolean
 
   def addRoll(roll: Roll): Either[GameError, Game]
-
 }
 
 sealed trait GameError
@@ -56,7 +55,6 @@ case class StandardGame(frames: List[Frame], score: Int) extends Game {
 
         this.copy(frames = updatedFrames ++ newFrames, score = this.score + newScore1 + newScore2)
     }
-
 
   private def addRoll(frame: Frame, roll: Roll) = {
     val newRolls = frame.rolls :+ roll
